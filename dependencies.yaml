@@ -1,0 +1,62 @@
+---
+nlohmann_json:
+  git: https://github.com/nlohmann/json
+  git_tag: v3.11.2
+  options: ["JSON_BuildTests OFF", "JSON_MultipleHeaders ON"]
+nlohmann_json_schema_validator:
+  git: https://github.com/pboettch/json-schema-validator
+  git_tag: 2.3.0
+  options:
+    [
+      "JSON_VALIDATOR_INSTALL OFF",
+      "JSON_VALIDATOR_BUILD_TESTS OFF",
+      "JSON_VALIDATOR_BUILD_EXAMPLES OFF",
+      "JSON_VALIDATOR_BUILD_SHARED_LIBS ON",
+    ]
+liblog:
+  git: https://github.com/EVerest/liblog.git
+  git_tag: v0.2.2
+  options: ["BUILD_EXAMPLES OFF"]
+libtimer:
+  git: https://github.com/EVerest/libtimer.git
+  git_tag: v0.1.1
+  options: ["BUILD_EXAMPLES OFF"]
+date:
+  git: https://github.com/HowardHinnant/date.git
+  git_tag: v3.0.1
+  options: ["BUILD_TZ_LIB ON", "HAS_REMOTE_API 0", "USE_AUTOLOAD 0", "USE_SYSTEM_TZ_DB ON"]
+websocketpp:
+  git: https://github.com/zaphoyd/websocketpp.git
+  git_tag: 0.8.2
+  cmake_condition: "LIBOCPP_ENABLE_DEPRECATED_WEBSOCKETPP"
+libevse-security:
+  git: https://github.com/EVerest/libevse-security.git
+  git_tag: 7624055c9a23c75e310ea7b3ebb7010063cf4c6c
+libwebsockets:
+  git: https://github.com/warmcat/libwebsockets.git
+  git_tag: v4.3.3  
+  options:
+    - CMAKE_POLICY_DEFAULT_CMP0077 NEW
+    - LWS_ROLE_RAW_FILE OFF
+    - LWS_UNIX_SOCK OFF
+    - LWS_WITH_SYS_STATE OFF
+    - LWS_WITH_SYS_SMD OFF
+    - LWS_WITH_UPNG OFF
+    - LWS_WITH_JPEG OFF
+    - LWS_WITH_DLO OFF
+    - LWS_WITH_SECURE_STREAMS OFF
+    - LWS_WITH_STATIC OFF
+    - LWS_WITH_LHP OFF
+    - LWS_WITH_LEJP_CONF OFF
+    - LWS_WITH_MINIMAL_EXAMPLES OFF
+    - LWS_WITH_CACHE_NSCOOKIEJAR OFF
+    - LWS_WITHOUT_TESTAPPS ON
+    - LWS_WITHOUT_TEST_SERVER ON
+    - LWS_WITHOUT_TEST_SERVER_EXTPOLL ON
+    - LWS_WITHOUT_TEST_PING ON
+    - LWS_WITHOUT_TEST_CLIENT ON
+gtest:
+  # GoogleTest now follows the Abseil Live at Head philosophy. We recommend updating to the latest commit in the main branch as often as possible.
+  git: https://github.com/google/googletest.git
+  git_tag: release-1.12.1
+  cmake_condition: "LIBOCPP_BUILD_TESTING"
