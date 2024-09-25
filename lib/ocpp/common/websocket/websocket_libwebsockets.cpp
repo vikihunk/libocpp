@@ -14,6 +14,7 @@
 
 #include <openssl/opensslv.h>
 #include <openssl/ssl.h>
+#include <openssl/engine.h>
 #include <openssl/x509v3.h>
 
 #define USING_OPENSSL_3 (OPENSSL_VERSION_NUMBER >= 0x30000000L)
@@ -292,6 +293,34 @@ constexpr auto local_protocol_name = "lws-everest-client";
 static const struct lws_protocols protocols[] = {{local_protocol_name, callback_minimal, 0, 0, 0, NULL, 0},
                                                  LWS_PROTOCOL_LIST_TERM};
 
+#if 0
+int read_from_file(string *pkcs_uri)
+{
+	// get the filepath
+	string filePath = "/media/data/pkey_ref";
+
+	// Open the file using ifstream
+	ifstream file(filePath);
+
+	// confirm file opening
+	if (!file.is_open()) {
+		// print error message and return
+		cerr << "Failed to open file: " << filePath << endl;
+		return 1;
+	}
+
+	// Read the file line by line into a string
+	while (getline(file, pkcs_uri)) {
+		cout << pkcs_uri << endl;
+	}
+
+	// Close the file
+	file.close();
+
+	return 0;
+}
+#endif
+
 bool WebsocketTlsTPM::tls_init(SSL_CTX* ctx, const std::string& path_chain, const std::string& path_key,
                                bool custom_key, std::optional<std::string>& password) {
     auto rc = SSL_CTX_set_cipher_list(ctx, this->connection_options.supported_ciphers_12.c_str());
@@ -329,12 +358,36 @@ bool WebsocketTlsTPM::tls_init(SSL_CTX* ctx, const std::string& path_chain, cons
             SSL_CTX_set_default_passwd_cb(ctx, private_key_callback);
         }
 
-        if (1 != SSL_CTX_use_PrivateKey_file(ctx, path_key.c_str(), SSL_FILETYPE_PEM)) {
-            ERR_print_errors_fp(stderr);
-            EVLOG_error << "Could not set private key file within SSL context";
+	    // Load the OpenSSL engine (e.g., PKCS#11 engine)
+	    ENGINE *engine = ENGINE_by_id("pkcs11");  // Use "pkcs11" as the engine ID for PKCS#11
+	    if (!engine) {
+		    ERR_print_errors_fp(stderr);
+		    EVLOG_error << "Could not find engine";
+		    return false;
+	    }
 
-            return false;
-        }
+	    // Initialize the engine
+	    if (!ENGINE_init(engine)) {
+		    ERR_print_errors_fp(stderr);
+		    EVLOG_error << "Could not init engine";
+		    return false;
+	    }
+
+	    //TBD - read uri from file
+	    // Load the private key from the HSM using the engine
+	    EVP_PKEY *pkey = ENGINE_load_private_key(engine, "pkcs11:id=%02;object=egp-evse;type=private;pin-value=sample", NULL, NULL);
+	    if (!pkey) {
+		    ERR_print_errors_fp(stderr);
+		    EVLOG_error << "Could not load private key";
+		    return false;
+	    }
+
+	    // Use the private key with the SSL context
+	    if (SSL_CTX_use_PrivateKey(ctx, pkey) <= 0) {
+		    ERR_print_errors_fp(stderr);
+		    EVLOG_error << "Could not use client pvt key";
+		    return false;
+	    }
 
         if (false == SSL_CTX_check_private_key(ctx)) {
             ERR_print_errors_fp(stderr);
